@@ -1,0 +1,51 @@
+service: kafka-stream
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  lambdaHashingVersion: 20201221
+  region: us-east-2
+  environment:
+    REGION: us-east-2
+    SECRET_NAME: analytics-test-redshift-credential
+    DB_NAME: dev
+
+functions:
+  processor-lambda:
+    handler: index.handler
+    role: KafkaProcessorRole
+    vpc:
+      securityGroupIds:
+        - sg-03b3044d4b45bbec0
+        - sg-039df0b7995ef23de
+      subnetIds:
+        - subnet-0a246ec93c121db0b
+        - subnet-0c221d8f4ba8b6176
+    events:
+      - msk:
+          arn: arn:aws:kafka:us-east-2:001978933059:cluster/kafka-test-cluster/88e5ab82-1660-412c-9a82-a6dafc9b0d1d-3
+          topic: analytics-test
+          batchSize: 100
+          startingPosition: LATEST
+          enabled: true
+
+resources:
+  Resources:
+    KafkaProcessorRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: KafkaProcessorRole
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaMSKExecutionRole
+          - arn:aws:iam::aws:policy/SecretsManagerReadWrite

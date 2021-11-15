@@ -1,0 +1,309 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description:  This template deploys a VPC, with one public and 2 private subnets spread
+  across two Availability Zones. It deploys an internet gateway, with a default
+  route on the public subnets. It deploys one NAT Gateway to be used by the private subnets
+  to access AWS services, such as secrets manager. It also deploys a Kafka Cluster, that will
+  be placed in the 2 private subnets. It will also deploy a redshift database and a DynamoDB table.
+
+Parameters:
+  EnvironmentName:
+    Description: Name of the environment.
+    Type: String
+
+  DynamoDBTableName:
+    Description: Name to the DynamoDB table.
+    Type: String
+  
+  KafkaClusterName:
+    Description: Name to the Kafka cluster.
+    Type: String
+  
+  RedshiftClusterName:
+    Description: Name of Redshift administrator.
+    Type: String
+
+  RedshiftDBName:
+    Description: Name of Redshift default database.
+    Type: String
+
+  RedshiftAdminUsername:
+    Description: Name of Redshift administrator.
+    Type: String
+
+  RedshiftPassword:
+    Description: Password for Redshift admin.
+    Type: String
+  
+Resources:
+  AnalyticsDemoVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} VPC
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} internet gateway.
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref AnalyticsDemoVPC
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref AnalyticsDemoVPC
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Public Subnet (AZ1)
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref AnalyticsDemoVPC
+      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      CidrBlock: 10.0.1.0/24
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Private Subnet (AZ1)
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref AnalyticsDemoVPC
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Private Subnet (AZ2)
+
+  NatGatewayEIP:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      Domain: vpc
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayEIP.AllocationId
+      SubnetId: !Ref PublicSubnet
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} NAT Gateway
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref AnalyticsDemoVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Public Routes
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref AnalyticsDemoVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Private Routes
+
+  DefaultPrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet1
+
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet2
+  
+  KafkaClientSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "kafka-client-sg"
+      GroupDescription: "Security group for kafka clients"
+      VpcId: !Ref AnalyticsDemoVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} KafkaClient SG
+  
+  KafkaServerSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "kafka-server-sg"
+      GroupDescription: "Security group for kafka clients"
+      VpcId: !Ref AnalyticsDemoVPC
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref KafkaClientSG
+          IpProtocol: tcp
+          FromPort: 9092
+          ToPort: 9092
+        - SourceSecurityGroupId: !Ref KafkaClientSG
+          IpProtocol: tcp
+          FromPort: 9094
+          ToPort: 9094
+        - SourceSecurityGroupId: !Ref KafkaClientSG
+          IpProtocol: tcp
+          FromPort: 2181
+          ToPort: 2181
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} KafkaServer SG
+  
+  RedshiftClientSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "redshift-client-sg"
+      GroupDescription: "Security group for redshift clients"
+      VpcId: !Ref AnalyticsDemoVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} RedshiftClient SG
+
+  RedshiftServerSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "redshift-server-sg"
+      GroupDescription: "Security group for redshift server"
+      VpcId: !Ref AnalyticsDemoVPC
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref RedshiftClientSG
+          IpProtocol: tcp
+          FromPort: 5439
+          ToPort: 5439
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName} RedshiftServer SG
+  
+  KafkaManagedCluster:
+    Type: AWS::MSK::Cluster
+    Properties:
+      KafkaVersion: 2.6.2
+      NumberOfBrokerNodes: 2
+      ClusterName: !Ref KafkaClusterName
+      BrokerNodeGroupInfo:
+        InstanceType: kafka.t3.small
+        ClientSubnets:
+          - !Ref PrivateSubnet1
+          - !Ref PrivateSubnet2
+        SecurityGroups:
+          - !Ref KafkaServerSG
+          - !Ref KafkaClientSG
+        StorageInfo:
+          EBSStorageInfo:
+            VolumeSize: 5
+      ClientAuthentication:
+        Unauthenticated:
+          Enabled: true
+      EncryptionInfo:
+        EncryptionInTransit:
+          ClientBroker: TLS_PLAINTEXT
+  
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref DynamoDBTableName
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      AttributeDefinitions:
+        - 
+          AttributeName: "name"
+          AttributeType: "S"
+      KeySchema: 
+        - 
+          AttributeName: "name"
+          KeyType: "HASH"
+  
+  RedshiftClusterSubnetGroup:
+    Type: AWS::Redshift::ClusterSubnetGroup
+    Properties:
+      Description: Cluster subnet group
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: Redshift subnet group
+
+  RedshiftCluster:
+    Type: AWS::Redshift::Cluster
+    Properties:
+      ClusterIdentifier: !Ref RedshiftClusterName
+      DBName: !Ref RedshiftDBName
+      MasterUsername: !Ref RedshiftAdminUsername
+      MasterUserPassword: !Ref RedshiftPassword
+      NodeType: dc2.large
+      ClusterType: single-node
+      ClusterSubnetGroupName: !Ref RedshiftClusterSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref RedshiftServerSG
+      Tags:
+        - Key: Name
+          Value: Redshift Analytics Cluster
+
+Outputs:
+  VPC:
+    Description: A reference to the created VPC
+    Value: !Ref AnalyticsDemoVPC
+
+  PublicSubnet:
+    Description: The public subnet
+    Value: !Ref PublicSubnet
+
+  PrivateSubnets:
+    Description: A list of the private subnets
+    Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2 ]]
+
+  PrivateSubnet1:
+    Description: A reference to the private subnet in the 1st Availability Zone
+    Value: !Ref PrivateSubnet1
+
+  PrivateSubnet2:
+    Description: A reference to the private subnet in the 2nd Availability Zone
+    Value: !Ref PrivateSubnet2
+
+  KafkaClientSecurityGroup:
+    Description: Reference to kafka client security group.
+    Value: !Ref KafkaClientSG
+  
+  RedshiftClientSecurityGroup:
+    Description: Reference to redshift client security group.
+    Value: !Ref RedshiftClientSG
