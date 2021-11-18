@@ -5,7 +5,7 @@ const secretName = process.env.SECRET_NAME;
 const secretKey = process.env.SECRET_KEY;
 
 
-async function getVaultRawCredential() {
+async function getVaultBearerToken() {
 
     // Create a Secrets Manager client
     const client = new AWS.SecretsManager({ region: region });
@@ -16,4 +16,4 @@ async function getVaultRawCredential() {
     return jsonData[secretKey];
 }
 
-module.exports = getVaultRawCredential;
+module.exports = getVaultBearerToken;

@@ -1,10 +1,6 @@
 const { Kafka } = require('kafkajs');
-const getVaultRawCredential = require('./awsUtil');
-const {
-    getBaererFromRawCredentials,
-    rawBearerToHeader,
-    addToVaultAndFetchTokenized
-} = require('./skyflowUtils');
+const getVaultBearerToken = require('./awsUtil');
+const { addToVaultAndFetchTokenized } = require('./skyflowUtils');
 
 const VAULT_URI = process.env.VAULT_URI;
 const TOPIC_NAME = process.env.TOPIC_NAME;
@@ -65,9 +61,8 @@ exports.handler = async (event, context) => {
 
     const dataToEncode = dataToTransform.map(data => { return transformData(data) });
 
-    const rawCredential = await getVaultRawCredential();
-    const bearer = await getBaererFromRawCredentials(rawCredential);
-    const header = rawBearerToHeader(bearer);
+    const bearer = await getVaultBearerToken();
+    const header = `Bearer ${bearer}`;
     const tokenizedValues = await addToVaultAndFetchTokenized(VAULT_URI, header, 'persons', dataToEncode);
     console.log(tokenizedValues);
 

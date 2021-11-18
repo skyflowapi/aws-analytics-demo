@@ -10,8 +10,8 @@ provider:
   region: us-east-2
   environment:
     REGION: us-east-2
-    SECRET_NAME: analytics-vault-credential
-    SECRET_KEY: raw-credential
+    SECRET_NAME: skyflow-analytics-bearer
+    SECRET_KEY: bearer-token
     VAULT_URI: https://ebfc9bee4242.vault.skyflowapis.com/v1/vaults/l6b991ba3d504e1c909f2eafbff7b989
     KAFKA_BROKERS: b-1.kafka-test-cluster.vt7rk8.c3.kafka.us-east-2.amazonaws.com:9092;b-2.kafka-test-cluster.vt7rk8.c3.kafka.us-east-2.amazonaws.com:9092
     TOPIC_NAME: analytics-test
@@ -55,8 +55,17 @@ resources:
               Action: sts:AssumeRole
         ManagedPolicyArns:
           - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
-          - arn:aws:iam::aws:policy/SecretsManagerReadWrite
         Policies:
+          - PolicyName: BearerSecretRO
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - secretsmanager:GetSecretValue
+                    - secretsmanager:DescribeSecret
+                  Resource:
+                    - arn:aws:secretsmanager:us-east-2:001978933059:secret:skyflow-analytics-bearer-qOCXqr
           - PolicyName: KafkaAnalyticClusterRW
             PolicyDocument:
               Version: '2012-10-17'
