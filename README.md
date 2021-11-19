@@ -1,12 +1,12 @@
 # AWS Analytics Demo
 
-This demo provides a template to ilustrate the integration of Skyflow's vault API and a data ingestion platform hosted on AWS.
+This demo provides a template to illustrate the integration of Skyflow's vault API and a data ingestion platform hosted on AWS.
 
 The project is composed by a cloudformation template, and 2 serverless lambda projects.
 
 The cloudformation template creates the basic infra structure in AWS, with a VPC, 1 public subnet, 2 private subnets, 2 Kafka brokers, 1 Redshift single node cluster, a DynamoDB table and the network relevant security groups.
 
-The 2 serverless lambda projects contains lambda functions to process the data. The first one gets notification when data is added to DynamoDB, then it persists this data to Skyflow's vault and then pushes the tokenized version to a Topic in Kafka. The second lambda, receives the data from Kafka and persists it to Redshift.
+The 2 serverless lambda projects contain lambda functions to process the data. The first one gets notified when data is added to DynamoDB, then it persists this data to Skyflow's vault and then pushes the tokenized version to a topic in Kafka. The second lambda receives the data from Kafka and persists it to Redshift.
 
 ![Architecture overlook](docs/img/AnalyticsArchitectureDiagram.png)
 
@@ -69,7 +69,7 @@ First, make sure that you have serverless framework installed, since both lambda
 ```
 npm install -g serverless
 ```
-In order for it to work, you'll also need AWS CLI installed and configured (with credential and options).
+In order for it to work, you'll also need AWS CLI installed and configured (with credentials and options).
 
 ### DynamoDB Processor Lambda
 
