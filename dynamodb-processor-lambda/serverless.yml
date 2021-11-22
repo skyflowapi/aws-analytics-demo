@@ -1,0 +1,134 @@
+service: dynamodb-stream
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  lambdaHashingVersion: 20201221
+  region: us-east-2
+  environment:
+    REGION: us-east-2
+    SECRET_NAME: skyflow-analytics-bearer
+    SECRET_KEY: bearer-token
+    VAULT_URI: https://ebfc9bee4242.vault.skyflowapis.com/v1/vaults/l6b991ba3d504e1c909f2eafbff7b989
+    KAFKA_BROKERS: b-1.kafka-test-cluster.vt7rk8.c3.kafka.us-east-2.amazonaws.com:9092;b-2.kafka-test-cluster.vt7rk8.c3.kafka.us-east-2.amazonaws.com:9092
+    TOPIC_NAME: analytics-test
+
+functions:
+  processor-lambda:
+    handler: index.handler
+    role: DynamoDBProcessorRole
+    vpc:
+      securityGroupIds:
+        - sg-039df0b7995ef23de
+      subnetIds:
+        - subnet-0a246ec93c121db0b
+        - subnet-0c221d8f4ba8b6176
+    events:
+      - stream: arn:aws:dynamodb:us-east-2:001978933059:table/analytics-test-table/stream/2021-11-12T13:33:32.698
+  
+  topic-creator:
+    handler: topicCreator.handler
+    role: TopicCreatorRole
+    vpc:
+      securityGroupIds:
+        - sg-039df0b7995ef23de
+      subnetIds:
+        - subnet-0a246ec93c121db0b
+        - subnet-0c221d8f4ba8b6176
+
+resources:
+  Resources:
+    DynamoDBProcessorRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: DynamoDBProcessorRole
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        Policies:
+          - PolicyName: BearerSecretRO
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - secretsmanager:GetSecretValue
+                    - secretsmanager:DescribeSecret
+                  Resource:
+                    - arn:aws:secretsmanager:us-east-2:001978933059:secret:skyflow-analytics-bearer-qOCXqr
+          - PolicyName: KafkaAnalyticClusterRW
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - kafka-cluster:Connect
+                    - kafka-cluster:AlterCluster
+                    - kafka-cluster:DescribeCluster
+                  Resource:
+                    - arn:aws:kafka:us-east-2:001978933059:cluster/kafka-test-cluster/88e5ab82-1660-412c-9a82-a6dafc9b0d1d-3
+                - Effect: Allow
+                  Action:
+                    - kafka-cluster:*Topic*
+                    - kafka-cluster:WriteData
+                    - kafka-cluster:ReadData
+                  Resource:
+                    - arn:aws:kafka:us-east-2:001978933059:topic/kafka-test-cluster/*
+                - Effect: Allow
+                  Action:
+                    - kafka-cluster:AlterGroup
+                    - kafka-cluster:DescribeGroup
+                  Resource:
+                    - arn:aws:kafka:us-east-2:001978933059:group/kafka-test-cluster/*
+                - Effect: Allow
+                  Action:
+                    - dynamodb:DescribeStream
+                    - dynamodb:GetRecords
+                    - dynamodb:GetShardIterator
+                    - dynamodb:ListStreams
+                  Resource:
+                    - arn:aws:dynamodb:us-east-2:001978933059:table/analytics-test-table/stream/2021-11-12T13:33:32.698
+    
+    TopicCreatorRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: TopicCreatorRole
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        Policies:
+          - PolicyName: KafkaTopicRW
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - kafka-cluster:Connect
+                    - kafka-cluster:AlterCluster
+                    - kafka-cluster:DescribeCluster
+                  Resource:
+                    - arn:aws:kafka:us-east-2:001978933059:cluster/kafka-test-cluster/88e5ab82-1660-412c-9a82-a6dafc9b0d1d-3
+                - Effect: Allow
+                  Action:
+                    - kafka-cluster:*Topic*
+                    - kafka-cluster:WriteData
+                    - kafka-cluster:ReadData
+                  Resource:
+                    - arn:aws:kafka:us-east-2:001978933059:topic/kafka-test-cluster/*

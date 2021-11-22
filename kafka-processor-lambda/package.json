@@ -1,0 +1,19 @@
+{
+  "name": "kafka_consumer",
+  "version": "1.0.0",
+  "description": "Kafka producer for analytics",
+  "main": "index.js",
+  "author": "Marcos de Aguiar",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "2.1024.0",
+    "pg": "8.7.1"
+  },
+  "scripts": {
+    "test": "mocha tests/unit/"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^8.2.1"
+  }
+}

@@ -1,0 +1,30 @@
+{
+    "Records": [
+        {
+            "eventID": "824f38414ebbea23a12759eefeca7eb7",
+            "eventName": "INSERT",
+            "eventVersion": "1.1",
+            "eventSource": "aws:dynamodb",
+            "awsRegion": "us-east-2",
+            "dynamodb": {
+                "ApproximateCreationDateTime": 1635871810,
+                "Keys": {
+                    "name": {
+                        "S": "John Doe D"
+                    }
+                },
+                "NewImage": {
+                    "name": { "S": "John Doe A" },
+                    "city": { "S": "Chicago" },
+                    "state": { "S": "IL" },
+                    "street_address": { "S": "Street 1" },
+                    "zip_code": { "S": "12345" }
+                },
+                "SequenceNumber": "451600000000012797351070",
+                "SizeBytes": 71,
+                "StreamViewType": "NEW_AND_OLD_IMAGES"
+            },
+            "eventSourceARN": "arn:aws:dynamodb:us-east-2:001978933059:table/analytics-demo-users/stream/2021-11-02T15:52:23.036"
+        }
+    ]
+}
