@@ -23,7 +23,8 @@ async function addToVaultAndFetchTokenized(vaultURI, bearerHeader, vaultEntity, 
   const response = await fetch(fetchURI, {
     method: 'POST',
     headers: headers,
-    body: bodyStr });
+    body: bodyStr
+  });
   
   const jsonResp =  await response.json();
   const skyflowRecords = jsonResp.records.map(data => { return {...data.tokens, skyflow_id: data.skyflow_id } });

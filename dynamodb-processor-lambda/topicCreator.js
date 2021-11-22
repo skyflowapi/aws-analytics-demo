@@ -1,6 +1,5 @@
 const { Kafka } = require('kafkajs');
-
-const TOPIC_NAME = process.env.TOPIC_NAME;
+const { TOPIC_NAME } = require('./config');
 
 function getBrokersArray() {
     

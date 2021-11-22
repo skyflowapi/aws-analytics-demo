@@ -1,4 +1,4 @@
-var AWS = require('aws-sdk');
+const AWS = require('aws-sdk');
 
 const region = process.env.REGION;
 const secretName = process.env.SECRET_NAME;
