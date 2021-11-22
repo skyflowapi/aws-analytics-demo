@@ -9,7 +9,7 @@
     "aws-sdk": "2.1022.0",
     "jsonwebtoken": "8.5.1",
     "kafkajs": "1.15.0",
-    "node-fetch": "2.4.0"
+    "node-fetch": "2.6.1"
   },
   "scripts": {
     "test": "mocha tests/unit/"
