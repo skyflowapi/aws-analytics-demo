@@ -7,15 +7,14 @@
   "license": "MIT",
   "dependencies": {
     "aws-sdk": "2.1022.0",
-    "jsonwebtoken": "8.5.1",
-    "kafkajs": "1.15.0",
-    "node-fetch": "2.4.0"
+    "axios": "0.24.0",
+    "kafkajs": "1.15.0"
   },
   "scripts": {
     "test": "mocha tests/unit/"
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^8.2.1"
+    "mocha": "9.1.3"
   }
 }
