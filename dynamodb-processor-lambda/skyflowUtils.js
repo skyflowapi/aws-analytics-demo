@@ -1,5 +1,4 @@
-const jwt = require('jsonwebtoken');
-const fetch = require('node-fetch');
+const axios = require('axios');
 
 async function addToVaultAndFetchTokenized(vaultURI, bearerHeader, vaultEntity, recordsToPersist) {
   
@@ -13,20 +12,14 @@ async function addToVaultAndFetchTokenized(vaultURI, bearerHeader, vaultEntity, 
     "tokenization": true
   };
 
-  const bodyStr = JSON.stringify(body);
-
   const headers = {
     'Authorization': bearerHeader,
     'Content-Type': 'application/json'
   };
 
-  const response = await fetch(fetchURI, {
-    method: 'POST',
-    headers: headers,
-    body: bodyStr
-  });
-  
-  const jsonResp =  await response.json();
+  const response = await axios.post(fetchURI, body, { headers: headers });
+
+  const jsonResp =  await response.data;
   const skyflowRecords = jsonResp.records.map(data => { return {...data.tokens, skyflow_id: data.skyflow_id } });
 
   return skyflowRecords;
