@@ -1,26 +1,26 @@
 # AWS Analytics Demo
 
-This demo provides a template to illustrate the integration of Skyflow's vault API and a data ingestion platform hosted on AWS.
+This proof-of-concept demo application provides a template that demonstrates how to integrate Skyflow's vault API with a data ingestion platform hosted on AWS. You can use a similar approach to preserve privacy while ingesting data in your own analytics pipeline.
 
-The project is composed by a cloudformation template, and 2 serverless lambda projects.
+The project consists of an AWS CloudFormation template, and 2 serverless AWS Lambda projects.
 
-The cloudformation template creates the basic infra structure in AWS, with a VPC, 1 public subnet, 2 private subnets, 2 Kafka brokers, 1 Redshift single node cluster, a DynamoDB table and the network relevant security groups.
+The CloudFormation template creates the basic infra structure in AWS, with a VPC, 1 public subnet, 2 private subnets, 2 Kafka brokers, 1 Redshift single node cluster, a DynamoDB table and the network-relevant security groups.
 
-The 2 serverless lambda projects contain lambda functions to process the data. The first one gets notified when data is added to DynamoDB, then it persists this data to Skyflow's vault and then pushes the tokenized version to a topic in Kafka. The second lambda receives the data from Kafka and persists it to Redshift.
+The 2 serverless Lambda projects contain Lambda functions to process the data. The first project gets notified when data is added to DynamoDB, then it persists this data to Skyflow's vault and then pushes the tokenized version to a topic in Kafka. The second Lambda project receives the data from Kafka and persists it to Redshift.
 
-![Architecture overlook](docs/img/AnalyticsArchitectureDiagram.png)
+![Architecture overview](docs/img/AnalyticsArchitectureDiagram.png)
 
-The following sections will describe how to setup the project.
+The rest of this README describes how to set up and test this demo.
 
-## AWS Cloudformation
+## AWS CloudFormation
 
-Go to AWS Cloudformation and choose create a new stack (with new resources).
+**1.** In the AWS CloudFormation UI, choose **Create a new stack (with new resources)**.
 
-Give the stack a name and fill the following parameters:
+Enter a name for your stack and fill in the following parameters:
 
 - EnvironmentName: Name of the environment that will be used in naming the resources (such as VPC subnets etc.)
 
-- DynamoDBTableName: A name for the DynamoDB table that will hold the data and trigger the lambda functions when data is added.
+- DynamoDBTableName: A name for the DynamoDB table that will hold the data and trigger the Lambda functions when data is added.
 
 - KafkaClusterName: Name to be used as resource name for the Kafka cluster.
 
@@ -32,18 +32,18 @@ Give the stack a name and fill the following parameters:
 
 - RedshiftPassword: Master password for Redshift admin user.
 
-Wait for some minutes until all the resources are created.
+Wait for a few minutes while all of the resources are created.
 
-Take notes of the following:
+Take note of the following, you will need this information later:
 - Kafka endpoints
 - Kafka cluster ARN
 - Redshift cluster endpoint
 - Private subnets id's
-- DynamoDB table stream ARN (in the console go to the DynamoDB table -> exports and stream tab, and get the stream ARN in the DynamoDB stream details box)
-- KafkaClient security group id (KafkaClientSG)
-- RedshiftClient security group id (RedshiftClientSG)
+- DynamoDB table stream ARN (in the console go to the DynamoDB table -> exports and stream tab, and get the stream ARN from the DynamoDB stream details box)
+- KafkaClient security group id (`KafkaClientSG`)
+- RedshiftClient security group id (`RedshiftClientSG`)
 
-Create Redshift table: In the console, go select the Redshift cluster that was created, and use the query editing tool. When connected issue the following create table script.
+**2.** Create Redshift table: In the console, choose the Redshift cluster that was created, and use the query editing tool. After connecting to the cluster, run the following script to create a table:
 ```
 create table persons (
   skyflow_id VARCHAR(256) NOT NULL,
@@ -56,31 +56,31 @@ create table persons (
 );
 ```
 
-## Skyflow vault
+## Create a Skyflow Data Privacy Vault
 
-Create a Skyflow vault with the following table name and schema, to be able to run this demo code. If you need a different structure, adjust the code accordingly.
+Create a Skyflow vault with the following table name and schema so you can run this demo code. If you need a different structure, adjust the demo code accordingly.
 
 ![Vault schema](docs/img/vaultstructure.png)
 
 
-## Setting up the Lambda Functions
+## Set Up the Lambda Functions
 
-First, make sure that you have serverless framework installed, since both lambda projects are based on it for packaging and deployment.
+First, make sure that you have a serverless framework installed, since both Lambda projects are based on it for packaging and deployment.
 ```
 npm install -g serverless
 ```
-In order for it to work, you'll also need AWS CLI installed and configured (with credentials and options).
+For the Lambda functions to work, you'll also need to install and configure the AWS CLI with credentials and options.
 
 ### DynamoDB Processor Lambda
 
-Go to the dynamodb-processor-lambda folder and install the dependencies.
+Go to the `dynamodb-processor-lambda` folder and install the dependencies.
 ```
 npm i
 ```
 
-Edit the serverless.yml file and replace the variables according to the resources generated by the cloudformation script. The security group id, has to be the one for the KafkaClientSG security group, and the subnet id's the ones of the private subnets.
+Edit the `serverless.yml` file and replace the variables according to the resources generated by the CloudFormation script. The security group id, has to be the one for the KafkaClientSG security group, and the subnet id's the ones of the private subnets.
 
-In the event configuration and the policies in the serverless.yaml file, replace the ARNs, with the ARNs of the resources generated by the cloudformation script. Also set the name of the topic in the environment variables, this is the topic where the data will be pushed to. 
+Replace the ARNs in the event configuration and policies in the `serverless.yaml` file with the ARNs of the resources generated by the CloudFormation script. Also, set the name of the topic in the environment variables, this is the topic where the data will be pushed to. 
 
 Example:
 ```
@@ -99,7 +99,7 @@ events:
     - arn:aws:kafka:us-east-2:XXXXXXXX:topic/kafka-test-cluster/*
 ```
 
-Also set the vault URI environment variable, coupled with the secret manager secret name and the key where the vault credentials were stored.
+Next, set the vault URI environment variable, coupled with the secret manager secret name and the key where the vault credentials are stored, as follows:
 ```
 environment:
     SECRET_NAME: <Secrets manager secret name>
@@ -110,29 +110,29 @@ environment:
 
 ```
 
-Once the variables are set, use the deploy command to build, upload the code, and create a stack for the lambda function.
+After the variables are set, use the deploy command to build, upload the code, and create a stack for the Lambda function.
 ```
 serverless deploy --stage dev
 ```
 
 The stage option is optional and helps organize the stacks (the parameter go in the naming).
 
-Once the Lambdas are deployed, go to the functions list in the console and look for the dynamodb-stream-envname-topic-creator function, and trigger it manually. It's just a convenience function to create the topic in Kafka, without the need of further configurations.
+Once the Lambdas are deployed, go to the functions list in the console and look for the `dynamodb-stream-envname-topic-creator` function, and trigger it manually. It's just a convenience function to create the topic in Kafka, without the need of further configurations.
 
-With all that done, the DynamoDB stream processing side should be done.
+Now, the DynamoDB stream processing should be ready.
 
 ### Kafka Processor Lambda
 
-The second lambda function does the part of getting data from the topic and persists it to Redshift.
+The second Lambda function gets data from the topic and persists it to Redshift.
 
-The setup method is similar to the DynamoDB processor function. First go to the kafka-processor-lambda folder and run 'npm i', as in the first case, to install the node dependencies.
+The setup method is similar to the DynamoDB processor function. First go to the `kafka-processor-lambda` folder and run 'npm i', as in the first case, to install the node dependencies.
 
-Create a Redshift credential entry in the Secrets Manager and use the name to set in the environment variable.
+Create a Redshift credential entry in the Secrets Manager and use the name to set the `SECRET_NAME` environment variable.
 
-Then edit the serverless.yml file with the relevant values.
+Then edit the `serverless.yml` file with the relevant values, as follows:
 ```
 environment:
-    SECRET_NAME: <Redshift crendetial name in Secrets Manager>
+    SECRET_NAME: <Redshift credential name in Secrets Manager>
     DB_NAME: dev
 
 ...
@@ -148,14 +148,14 @@ functions:
         - Private subnet 2 Id
 ```
 
-Once the names are setup, deploy the lambda:
+After the names are set up, deploy the Lambda:
 ```
 serverless deploy --stage dev
 ```
 
-## Testing the pipeline
+## Test the Pipeline
 
-To be able to test if the stream is working and data is being pushed, go to the DynamoDB section in AWS (or create your own application if you prefer), and add a item with the following structure:
+To test if the stream is working and data is being pushed, go to the DynamoDB section in AWS (or create your own application if you prefer), and add an item with the following structure:
 
 ```json
 {
@@ -168,4 +168,4 @@ To be able to test if the stream is working and data is being pushed, go to the 
 
 ```
 
-Verify that the data is persisted in the vault, and the tokenized version is in Redshift.
+Verify that the data is persisted in the vault, and the tokenized version is stored in Redshift.
