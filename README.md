@@ -1,6 +1,6 @@
 # AWS Analytics Demo
 
-This proof-of-concept demo application provides a template that demonstrates how to integrate Skyflow's vault API with a data ingestion platform hosted on AWS. You can use a similar approach to preserve privacy while ingesting data in your own analytics pipeline.
+This sample application provides a template that demonstrates how to integrate Skyflow's vault API with a data ingestion platform hosted on AWS. You can use a similar approach to preserve privacy while ingesting data in your own analytics pipeline.
 
 The project consists of an AWS CloudFormation template, and 2 serverless AWS Lambda projects.
 
