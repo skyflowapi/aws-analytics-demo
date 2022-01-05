@@ -1,4 +1,4 @@
-# AWS Analytics Demo
+# AWS Analytics Pipeline Sample Application
 
 This sample application provides a template that demonstrates how to integrate Skyflow's vault API with a data ingestion platform hosted on AWS. You can use a similar approach to preserve privacy while ingesting data in your own analytics pipeline.
 
@@ -10,7 +10,7 @@ The 2 serverless Lambda projects contain Lambda functions to process the data. T
 
 ![Architecture overview](docs/img/AnalyticsArchitectureDiagram.png)
 
-The rest of this README describes how to set up and test this demo.
+The rest of this README describes how to set up and test this sample application.
 
 ## AWS CloudFormation
 
@@ -58,7 +58,7 @@ create table persons (
 
 ## Create a Skyflow Data Privacy Vault
 
-Create a Skyflow vault with the following table name and schema so you can run this demo code. If you need a different structure, adjust the demo code accordingly.
+Create a Skyflow vault with the following table name and schema so you can run this sample code. If you need a different structure, adjust the sample code accordingly.
 
 ![Vault schema](docs/img/vaultstructure.png)
 
