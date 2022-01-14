@@ -11,7 +11,7 @@ provider:
   environment:
     REGION: us-east-2
     SECRET_NAME: skyflow-analytics-bearer
-    SECRET_KEY: bearer-token
+    SECRET_KEY: raw-credential
     VAULT_URI: https://ebfc9bee4242.vault.skyflowapis.com/v1/vaults/l6b991ba3d504e1c909f2eafbff7b989
     KAFKA_BROKERS: b-1.kafka-test-cluster.vt7rk8.c3.kafka.us-east-2.amazonaws.com:9092;b-2.kafka-test-cluster.vt7rk8.c3.kafka.us-east-2.amazonaws.com:9092
     TOPIC_NAME: analytics-test

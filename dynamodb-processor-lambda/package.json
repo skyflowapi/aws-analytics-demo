@@ -8,6 +8,7 @@
   "dependencies": {
     "aws-sdk": "2.1022.0",
     "axios": "0.24.0",
+    "jsonwebtoken": "^8.5.1",
     "kafkajs": "1.15.0"
   },
   "scripts": {
