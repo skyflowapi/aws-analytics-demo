@@ -1,7 +1,7 @@
 {
   "name": "kafka_consumer",
   "version": "1.0.0",
-  "description": "Kafka producer for analytics",
+  "description": "Kafka consumer for analytics",
   "main": "index.js",
   "author": "Marcos de Aguiar",
   "license": "MIT",
