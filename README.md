@@ -4,7 +4,7 @@ This sample application provides a template that demonstrates how to integrate S
 
 The project consists of an AWS CloudFormation template, and 2 serverless AWS Lambda projects.
 
-The CloudFormation template creates the basic infra structure in AWS, with a VPC, 1 public subnet, 2 private subnets, 2 Kafka brokers, 1 Redshift single node cluster, a DynamoDB table and the network-relevant security groups.
+The CloudFormation template creates the basic infrastructure in AWS, with a VPC, 1 public subnet, 2 private subnets, 2 Kafka brokers, 1 Redshift single node cluster, a DynamoDB table and the network-relevant security groups.
 
 The 2 serverless Lambda projects contain Lambda functions to process the data. The first project gets notified when data is added to DynamoDB, then it persists this data to Skyflow's vault and then pushes the tokenized version to a topic in Kafka. The second Lambda project receives the data from Kafka and persists it to Redshift.
 
@@ -12,32 +12,41 @@ The 2 serverless Lambda projects contain Lambda functions to process the data. T
 
 The rest of this README describes how to set up and test this sample application.
 
+## Prerequisites
+
+Skyflow account with permissions to create a vault.
+
+Node.js and [Serverless](https://www.serverless.com/) framework installed globally.
+
+AWS account with enough permissions to create the required resources (VPC, Subnets, Kafka brokers, etc...).
+
 ## AWS CloudFormation
 
 **1.** In the AWS CloudFormation UI, choose **Create a new stack (with new resources)**.
 
-Enter a name for your stack and fill in the following parameters:
-
-- EnvironmentName: Name of the environment that will be used in naming the resources (such as VPC subnets etc.)
+Choose "Upload a template file", select the "AWSCloudFormation.yaml" file, enter a name for your stack, and fill in the following parameters:
 
 - DynamoDBTableName: A name for the DynamoDB table that will hold the data and trigger the Lambda functions when data is added.
 
+- EnvironmentName: Name of the environment that will be used in naming the resources (such as VPC subnets etc.)
+
 - KafkaClusterName: Name to be used as resource name for the Kafka cluster.
+
+- RedshiftAdminUsername: Name of the admin user name for Redshift.
 
 - RedshiftClusterName: Resource name for the Redshift cluster.
 
 - RedshiftDBName: Name of the default database created in Redshift.
-
-- RedshiftAdminUsername: Name of the admin user name for Redshift.
 
 - RedshiftPassword: Master password for Redshift admin user.
 
 Wait for a few minutes while all of the resources are created.
 
 Take note of the following, you will need this information later:
-- Kafka endpoints
+- The parameters entered in the CloudFormation stack
+- Kafka endpoints (go to AWS MSK and check the Kafka cluster created with the provided name)
 - Kafka cluster ARN
-- Redshift cluster endpoint
+- Redshift cluster endpoint (go to AWS Redshift and check the Redshift cluster created with the provided name)
 - Private subnets id's
 - DynamoDB table stream ARN (in the console go to the DynamoDB table -> exports and stream tab, and get the stream ARN from the DynamoDB stream details box)
 - KafkaClient security group id (`KafkaClientSG`)
@@ -58,7 +67,7 @@ create table persons (
 
 ## Create a Skyflow Data Privacy Vault
 
-Create a Skyflow vault with the following table name and schema so you can run this sample code. If you need a different structure, adjust the sample code accordingly.
+[Create a Skyflow vault](https://docs.skyflow.com/developer-portal/getting-started/creating-a-custom-vault/) with the following table name and schema so you can run this sample code. If you need a different structure, adjust the sample code accordingly.
 
 ![Vault schema](docs/img/vaultstructure.png)
 
@@ -115,9 +124,9 @@ After the variables are set, use the deploy command to build, upload the code, a
 serverless deploy --stage dev
 ```
 
-The stage option is optional and helps organize the stacks (the parameter go in the naming).
+The stage option is optional and helps organize the stacks (the parameter goes in the naming).
 
-Once the Lambdas are deployed, go to the functions list in the console and look for the `dynamodb-stream-envname-topic-creator` function, and trigger it manually. It's just a convenience function to create the topic in Kafka, without the need of further configurations.
+Once the Lambdas are deployed, go to the functions list in the console and look for the `dynamodb-stream-envname-topic-creator` (where envname is the name set in the --stage parameter) function, and trigger it manually. It's just a convenience function to create the topic in Kafka, without the need of further configurations.
 
 Now, the DynamoDB stream processing should be ready.
 
