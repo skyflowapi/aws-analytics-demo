@@ -71,6 +71,8 @@ create table persons (
 
 ![Vault schema](docs/img/vaultstructure.png)
 
+On Skyflow, click "Create Vault" -> "Upload Vault Schema" and select the vaultSchema.json file provided in this repository.
+
 
 ## Set Up the Lambda Functions
 
