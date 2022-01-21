@@ -26,17 +26,17 @@ AWS account with enough permissions to create the required resources (VPC, Subne
 
 Choose "Upload a template file", select the "AWSCloudFormation.yaml" file, enter a name for your stack, and fill in the following parameters:
 
-- DynamoDBTableName: A name for the DynamoDB table that will hold the data and trigger the Lambda functions when data is added.
+- DynamoDBTableName: A name for the DynamoDB table that will hold the data and trigger the Lambda functions when data is added (i.e. analytics-table).
 
-- EnvironmentName: Name of the environment that will be used in naming the resources (such as VPC subnets etc.)
+- EnvironmentName: Name of the environment that will be used in naming the resources (such as VPC subnets etc.) (i.e. test, development, production).
 
-- KafkaClusterName: Name to be used as resource name for the Kafka cluster.
+- KafkaClusterName: Name to be used as resource name for the Kafka cluster (i.e. kafka-dev-cluster).
 
-- RedshiftAdminUsername: Name of the admin user name for Redshift.
+- RedshiftAdminUsername: Name of the admin user name for Redshift (i.e. admin).
 
-- RedshiftClusterName: Resource name for the Redshift cluster.
+- RedshiftClusterName: Resource name for the Redshift cluster (i.e. redshift-dev-cluster).
 
-- RedshiftDBName: Name of the default database created in Redshift.
+- RedshiftDBName: Name of the default database created in Redshift (i.e. dev).
 
 - RedshiftPassword: Master password for Redshift admin user.
 
