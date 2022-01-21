@@ -24,19 +24,19 @@ AWS account with enough permissions to create the required resources (VPC, Subne
 
 **1.** In the AWS CloudFormation UI, choose **Create a new stack (with new resources)**.
 
-Choose "Upload a template file", select the "AWSCloudFormation.yaml" file, enter a name for your stack, and fill in the following parameters:
+Choose "Upload a template file", select the `AWSCloudFormation.yaml` file, enter a name for your stack, and fill in the following parameters:
 
-- DynamoDBTableName: A name for the DynamoDB table that will hold the data and trigger the Lambda functions when data is added (i.e. analytics-table).
+- DynamoDBTableName: A name for the DynamoDB table that will hold the data and trigger the Lambda functions when data is added (e.g. analytics-table).
 
-- EnvironmentName: Name of the environment that will be used in naming the resources (such as VPC subnets etc.) (i.e. test, development, production).
+- EnvironmentName: Name of the environment that will be used in naming the resources (such as VPC subnets etc.) (e.g. test, development, production).
 
-- KafkaClusterName: Name to be used as resource name for the Kafka cluster (i.e. kafka-dev-cluster).
+- KafkaClusterName: Name to be used as resource name for the Kafka cluster (e.g. kafka-dev-cluster).
 
-- RedshiftAdminUsername: Name of the admin user name for Redshift (i.e. admin).
+- RedshiftAdminUsername: Name of the admin user name for Redshift (e.g. admin).
 
-- RedshiftClusterName: Resource name for the Redshift cluster (i.e. redshift-dev-cluster).
+- RedshiftClusterName: Resource name for the Redshift cluster (e.g. redshift-dev-cluster).
 
-- RedshiftDBName: Name of the default database created in Redshift (i.e. dev).
+- RedshiftDBName: Name of the default database created in Redshift (e.g. dev).
 
 - RedshiftPassword: Master password for Redshift admin user.
 
@@ -71,7 +71,7 @@ create table persons (
 
 ![Vault schema](docs/img/vaultstructure.png)
 
-On Skyflow, click "Create Vault" -> "Upload Vault Schema" and select the vaultSchema.json file provided in this repository.
+On Skyflow, click "Create Vault" -> "Upload Vault Schema" and select the `vaultSchema.json` file provided in this repository.
 
 
 ## Set Up the Lambda Functions
@@ -128,7 +128,7 @@ serverless deploy --stage dev
 
 The stage option is optional and helps organize the stacks (the parameter goes in the naming).
 
-Once the Lambdas are deployed, go to the functions list in the console and look for the `dynamodb-stream-envname-topic-creator` (where envname is the name set in the --stage parameter) function, and trigger it manually. It's just a convenience function to create the topic in Kafka, without the need of further configurations.
+Once the Lambdas are deployed, go to the functions list in the console and look for the `dynamodb-stream-envname-topic-creator` (where envname is the name set in the --stage parameter) function, and trigger it manually. It's just a convenience function to create the topic in Kafka, without the need for further configurations.
 
 Now, the DynamoDB stream processing should be ready.
 
