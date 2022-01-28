@@ -82,6 +82,18 @@ For the Lambda functions to work, you'll also need to install and configure the 
 
 ### DynamoDB Processor Lambda
 
+Before setting up the DynamoDB Processor Lambda function, first [create and download](https://docs.skyflow.com/developer-portal/getting-started/api-authentication/) a service account key for your Skyflow vault.
+
+After downloading the service account key, navigate to the [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/getting-started/) in the AWS management console and create a new secret for storing your vault service account key.
+
+![Secret Settings](docs/img/AwsSecretSettings.png)
+
+When creating the secret, choose "Other type of secret". In the "Key" field, enter the key name, e.g. raw-credential. In the "Secret vault" field, paste the contents of the downloaded vault service account key file. Click Next and then set the "Secret name".
+
+![Secret Name](docs/img/AwsSecretName.png)
+
+You will need the secret key and secret name when setting the configuration parameters for the lambda function.
+
 Go to the `dynamodb-processor-lambda` folder and install the dependencies.
 ```
 npm i
@@ -118,11 +130,7 @@ environment:
     TOPIC_NAME: <Name of the topic where data will be pushed>
 ```
 
-The `SECRET_KEY` is the key set in the secret when it's created in the [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/getting-started/). The value field must be filled with the contents of the [credentials file downloaded from the vault](https://docs.skyflow.com/developer-portal/getting-started/api-authentication/).
-![Secret Settings](docs/img/AwsSecretSettings.png)
-
-The `SECRET_NAME` is the name of the created secret, set in the next page.
-![Secret Name](docs/img/AwsSecretName.png)
+The `SECRET_KEY` is the key you set when creating the secret in the AWS Secrets Manager to store your vault's service account key. The `SECRET_NAME` is the name of the secret.
 
 After the variables are set, use the deploy command to build, upload the code, and create a stack for the Lambda function.
 ```
