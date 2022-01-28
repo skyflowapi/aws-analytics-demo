@@ -118,6 +118,12 @@ environment:
     TOPIC_NAME: <Name of the topic where data will be pushed>
 ```
 
+The `SECRET_KEY` is the key set in the secret when it's created in the [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/getting-started/). The value field must be filled with the contents of the [credentials file downloaded from the vault](https://docs.skyflow.com/developer-portal/getting-started/api-authentication/).
+![Secret Settings](docs/img/AwsSecretSettings.png)
+
+The `SECRET_NAME` is the name of the created secret, set in the next page.
+![Secret Name](docs/img/AwsSecretName.png)
+
 After the variables are set, use the deploy command to build, upload the code, and create a stack for the Lambda function.
 ```
 serverless deploy --stage dev
