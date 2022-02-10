@@ -193,3 +193,7 @@ To test if the stream is working and data is being pushed, go to the **DynamoDB*
 ```
 
 Now that this sample application is configured, you can verify that the data is persisted in the vault, and tokenized data is stored in Redshift.
+
+|Learn More|
+|----------|
+|To learn more about this project, check out this post on the Skyflow blog: [De-identifying Analytics Data: An AWS Sample Application](https://www.skyflow.com/post/de-identifying-analytics-data-an-aws-sample-application)|
