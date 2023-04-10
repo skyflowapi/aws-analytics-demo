@@ -6,7 +6,7 @@
   "author": "Marcos de Aguiar",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "2.1024.0",
+    "aws-sdk": "2.1354.0",
     "pg": "8.7.1"
   },
   "scripts": {
